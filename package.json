@@ -23,7 +23,7 @@
     "name": "eXhumer",
     "email": "exhumer@exhumer.cc"
   },
-  "license": "BSD-3-Clause",
+  "license": "GPL-3.0-only",
   "bugs": {
     "url": "https://github.com/eXhumer/decky-f1-live-timing/issues"
   },
