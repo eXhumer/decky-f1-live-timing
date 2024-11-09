@@ -1,0 +1,11 @@
+{
+  "name": "F1 Live Timing",
+  "author": "eXhumer",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": [],
+    "description": "Decky plugin to show F1 live timing information",
+    "image": "https://opengraph.githubassets.com/1/eXhumer/decky-f1-live-timing"
+  }
+}

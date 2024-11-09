@@ -1,0 +1,60 @@
+{
+  "name": "decky-f1-live-timing",
+  "version": "0.0.1",
+  "description": "Decky plugin to show F1 live timing information",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "lint": "eslint",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eXhumer/decky-f1-live-timing.git"
+  },
+  "keywords": [
+    "decky",
+    "plugin",
+    "steam-deck",
+    "deck"
+  ],
+  "author": {
+    "name": "eXhumer",
+    "email": "exhumer@exhumer.cc"
+  },
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/eXhumer/decky-f1-live-timing/issues"
+  },
+  "homepage": "https://github.com/eXhumer/decky-f1-live-timing#readme",
+  "devDependencies": {
+    "@decky/rollup": "^1.0.1",
+    "@decky/ui": "^4.8.1",
+    "@eslint/js": "^9.14.0",
+    "@stylistic/eslint-plugin": "^2.10.1",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@types/webpack": "^5.28.5",
+    "eslint": "^9.14.0",
+    "eslint-plugin-react": "^7.37.2",
+    "rollup": "^4.24.4",
+    "rollup-plugin-external-globals": "^0.12.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  },
+  "dependencies": {
+    "@decky/api": "^1.1.2",
+    "@microsoft/signalr": "^8.0.7",
+    "react-icons": "^5.3.0",
+    "tslib": "^2.8.1"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "react",
+        "react-dom"
+      ]
+    }
+  }
+}
