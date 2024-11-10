@@ -1,33 +1,97 @@
-import {
-  definePlugin,
-} from "@decky/api";
-import { FaShip } from "react-icons/fa";
+import { definePlugin } from "@decky/api";
+import { name } from "@decky/manifest";
+import { version } from "@decky/pkg";
 
-import { setupLtConnection } from "./utils/LiveTiming";
-import { error, log } from "./utils/Logger";
+import { FaShip } from "react-icons/fa";
 
 import PluginContent from "./components/PluginContent";
 import PluginTitleView from "./components/PluginTitleView";
 
-import { name } from "@decky/manifest";
-import { version } from "@decky/pkg";
+import { LiveTiming } from "./utils/LiveTiming";
+import { error, info } from "./utils/Logger";
 import { HubConnectionState } from "@microsoft/signalr";
+import { getSystemNetworkStore } from "./utils/Steam";
 
 export default definePlugin(() => {
-  const ltClient = setupLtConnection();
+  // setup a self healing persistent connection
+  const ltClient = new LiveTiming();
 
-  ltClient
-    .start()
-    .then(() => {
-      log("Connected to Live Timing.");
-      return ltClient.invoke("Subscribe", ["SessionInfo"]);
-    })
-    .then((current) => {
-      log("Subscribed to Live Timing", current);
-    })
-    .catch((e) => {
-      error("Failed to connect to Live Timing.", e);
-    });
+  ltClient.on("closed", (err?: Error) => {
+    if (err)
+      error("Connection closed due to error", err);
+
+    else
+      info("Connection closed");
+
+    const connInterval = setInterval(() => {
+      const networkStore = getSystemNetworkStore();
+
+      if (!networkStore)
+        return;
+
+      if (!networkStore.hasInternetConnection)
+        return;
+
+      ltClient
+        .start()
+        .then(() => {
+          clearInterval(connInterval);
+        })
+        .catch(() => {});
+    }, 5000);
+  });
+
+  ltClient.on("connected", () => {
+    info("Connected to Live Timing");
+
+    ltClient
+      .Subscribe(["SessionInfo"])
+      .then((current) => {
+        info("Current Session Info", current.SessionInfo);
+      });
+  });
+
+  ltClient.on("disconnected", () => {
+    info("Disconnected from Live Timing");
+  });
+
+  ltClient.on("feed", ([topic, data, timestamp]: [string, unknown, string]) => {
+    info("Received feed", topic, data, timestamp);
+  });
+
+  ltClient.on("reconnected", (connectionId?: string) => {
+    info("Reconnected to Live Timing", connectionId);
+    ltClient
+      .Subscribe(["SessionInfo"])
+      .then((current) => {
+        info("Current Session Info", current.SessionInfo);
+      });
+  });
+
+  ltClient.on("reconnecting", (err?: Error) => {
+    if (err)
+      error("Reconnecting to Live Timing", err);
+
+    else
+      info("Reconnecting to Live Timing");
+  });
+
+  const connInterval = setInterval(() => {
+    const networkStore = getSystemNetworkStore();
+
+    if (!networkStore)
+      return;
+
+    if (!networkStore.hasInternetConnection)
+      return;
+
+    ltClient
+      .start()
+      .then(() => {
+        clearInterval(connInterval);
+      })
+      .catch(() => {});
+  }, 5000);
 
   return {
     name,
@@ -37,12 +101,10 @@ export default definePlugin(() => {
     icon: <FaShip />,
     onDismount: () => {
       if (ltClient.state === HubConnectionState.Connected)
-        ltClient.stop()
+        ltClient
+          .stop()
           .then(() => {
-            log("Disconnected from Live Timing.");
-          })
-          .catch((e) => {
-            error("Failed to disconnect from Live Timing.", e);
+            info("Disconnected from Live Timing");
           });
     },
   };

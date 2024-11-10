@@ -3,6 +3,7 @@
 
 import { fetchNoCors } from "@decky/api";
 import { AbortError, HttpClient, HttpError, HttpRequest, HttpResponse, ILogger, LogLevel, TimeoutError } from "@microsoft/signalr";
+import { debug } from "../Logger";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isArrayBuffer = (val: any): val is ArrayBuffer => {
@@ -45,7 +46,7 @@ export class DeckyHttpClient extends HttpClient {
   }
 
   async send(request: HttpRequest): Promise<HttpResponse> {
-    this._logger.log(LogLevel.Debug, `DeckyHttpClient.send ${request}`);
+    debug("DeckyHttpClient.send", request);
 
     // Check that abort was not signaled before calling send
     if (request.abortSignal && request.abortSignal.aborted)
