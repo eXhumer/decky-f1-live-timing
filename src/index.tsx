@@ -3,14 +3,12 @@ import { name } from "@decky/manifest";
 import { version } from "@decky/pkg";
 
 import { FaShip } from "react-icons/fa";
-
-import PluginContent from "./components/PluginContent";
-import PluginTitleView from "./components/PluginTitleView";
-
-import { LiveTiming } from "./utils/LiveTiming";
-import { error, info } from "./utils/Logger";
 import { HubConnectionState } from "@microsoft/signalr";
-import { getSystemNetworkStore } from "./utils/Steam";
+
+import { PluginContent, PluginTitleView } from "./components";
+
+import { LiveTiming } from "./client";
+import { error, info, getSystemNetworkStore } from "./utils";
 
 export default definePlugin(() => {
   // setup a self healing persistent connection
@@ -24,6 +22,11 @@ export default definePlugin(() => {
       info("Connection closed");
 
     const connInterval = setInterval(() => {
+      const connClearInterval = () => {
+        clearInterval(connInterval);
+        ltClient.off("connected", connClearInterval);
+      };
+
       const networkStore = getSystemNetworkStore();
 
       if (!networkStore)
@@ -32,23 +35,15 @@ export default definePlugin(() => {
       if (!networkStore.hasInternetConnection)
         return;
 
-      ltClient
-        .start()
-        .then(() => {
-          clearInterval(connInterval);
-        })
-        .catch(() => {});
+      ltClient.on("connected", connClearInterval);
+
+      ltClient.start();
     }, 5000);
   });
 
   ltClient.on("connected", () => {
     info("Connected to Live Timing");
-
-    ltClient
-      .Subscribe(["SessionInfo"])
-      .then((current) => {
-        info("Current Session Info", current.SessionInfo);
-      });
+    ltClient.Subscribe(["SessionInfo"]);
   });
 
   ltClient.on("disconnected", () => {
@@ -61,11 +56,7 @@ export default definePlugin(() => {
 
   ltClient.on("reconnected", (connectionId?: string) => {
     info("Reconnected to Live Timing", connectionId);
-    ltClient
-      .Subscribe(["SessionInfo"])
-      .then((current) => {
-        info("Current Session Info", current.SessionInfo);
-      });
+    ltClient.Subscribe(["SessionInfo"]);
   });
 
   ltClient.on("reconnecting", (err?: Error) => {
@@ -76,7 +67,31 @@ export default definePlugin(() => {
       info("Reconnecting to Live Timing");
   });
 
+  ltClient.on("subscribed", (topics: string[]) => {
+    info("Subscribed to Live Timing");
+
+    for (const topic of topics)
+      info(topic, ltClient.Current[topic]);
+  });
+
+  ltClient.on("unsubscribed", (topics: string[]) => {
+    info("Unsubscribed from Live Timing", topics);
+  });
+
+  ltClient.on("startError", (err: Error) => {
+    error("Failed to start Live Timing", err);
+  });
+
+  ltClient.on("stopError", (err: Error) => {
+    error("Failed to stop Live Timing", err);
+  });
+
   const connInterval = setInterval(() => {
+    const connClearInterval = () => {
+      clearInterval(connInterval);
+      ltClient.off("connected", connClearInterval);
+    };
+
     const networkStore = getSystemNetworkStore();
 
     if (!networkStore)
@@ -85,12 +100,9 @@ export default definePlugin(() => {
     if (!networkStore.hasInternetConnection)
       return;
 
-    ltClient
-      .start()
-      .then(() => {
-        clearInterval(connInterval);
-      })
-      .catch(() => {});
+    ltClient.on("connected", connClearInterval);
+
+    ltClient.start();
   }, 5000);
 
   return {
@@ -100,12 +112,10 @@ export default definePlugin(() => {
     content: <PluginContent ltClient={ltClient} />,
     icon: <FaShip />,
     onDismount: () => {
-      if (ltClient.state === HubConnectionState.Connected)
-        ltClient
-          .stop()
-          .then(() => {
-            info("Disconnected from Live Timing");
-          });
+      const networkStore = getSystemNetworkStore();
+
+      if (ltClient.state === HubConnectionState.Connected && networkStore?.hasInternetConnection)
+        ltClient.stop();
     },
   };
 });

@@ -1,7 +1,8 @@
 import { author, name } from "@decky/manifest";
 import { version } from "@decky/pkg";
-import { LiveTiming } from "../utils/LiveTiming";
 import { useEffect, useState } from "react";
+
+import { LiveTiming } from "../client";
 
 type PluginContentProps = {
   ltClient: LiveTiming;

@@ -1,6 +1,6 @@
 import { ILogger, LogLevel } from "@microsoft/signalr";
 
-import { trace, debug, info, warn, error, critical, log } from "../Logger";
+import { trace, debug, info, warn, error, critical, log } from "../../utils";
 
 export class ConsoleLogger implements ILogger {
   private readonly _minLevel: LogLevel;

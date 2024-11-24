@@ -3,7 +3,7 @@
 
 import { fetchNoCors } from "@decky/api";
 import { AbortError, HttpClient, HttpError, HttpRequest, HttpResponse, ILogger, LogLevel, TimeoutError } from "@microsoft/signalr";
-import { debug } from "../Logger";
+import { debug } from "../../utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isArrayBuffer = (val: any): val is ArrayBuffer => {

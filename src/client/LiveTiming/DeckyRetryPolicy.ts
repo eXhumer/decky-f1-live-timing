@@ -1,6 +1,6 @@
 import { IRetryPolicy, RetryContext } from "@microsoft/signalr";
 
-import { debug } from "../Logger";
+import { debug } from "../../utils";
 
 export class DeckyRetryPolicy implements IRetryPolicy {
   constructor(private maxRetryCount: number = 6) {}
